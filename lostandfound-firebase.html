@@ -1,89 +1,54 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#5b5bd6">
-<title>Lost&Found — ของหายได้คืน</title>
-<style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,sans-serif;background:#f5f6ff;color:#20223a}
-.app{max-width:560px;margin:auto;min-height:100vh;background:#fff}header{background:linear-gradient(135deg,#5b5bd6,#7b61ff);color:#fff;padding:28px 22px 24px;border-radius:0 0 28px 28px}
-.brand{font-size:30px;font-weight:800}.sub{opacity:.9;margin-top:5px;font-size:14px}.tabs{display:flex;gap:10px;margin-top:22px}
-.tab{flex:1;border:0;border-radius:13px;padding:12px;font-weight:700;background:rgba(255,255,255,.18);color:#fff;cursor:pointer}.tab.active{background:#fff;color:#5b5bd6}
-main{padding:20px 18px 40px}.view{display:none}.view.active{display:block}.card{background:#fff;border:1px solid #e7e8f4;border-radius:18px;padding:17px;margin-bottom:14px;box-shadow:0 5px 18px rgba(45,45,100,.06)}
-.search{display:flex;gap:9px;margin-bottom:15px}input,textarea{width:100%;border:1px solid #dfe1ef;border-radius:12px;padding:12px 13px;font:inherit;background:#fafaff;color:#20223a}textarea{min-height:90px;resize:vertical}
-label{font-size:13px;font-weight:700;margin:12px 0 6px;display:block}button.primary{border:0;background:#5b5bd6;color:#fff;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer}
-button.secondary{border:1px solid #dfe1ef;background:#fff;color:#4b4d70;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer}.full{width:100%;margin-top:16px}
-.item-title{font-size:19px;font-weight:800;margin:0 0 8px}.meta{color:#666987;font-size:13px;line-height:1.7}.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800;background:#fff0d6;color:#9a6100;margin-bottom:10px}.badge.returned{background:#dcf8e8;color:#167044}
-.desc{margin:10px 0;color:#4e506a;line-height:1.55}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.empty{text-align:center;color:#777b98;padding:35px 10px}.notice{font-size:12px;color:#777b98;text-align:center;margin-top:18px;line-height:1.5}.loading{text-align:center;padding:25px;color:#666987}
-.error{background:#fff0f0;color:#a33;border:1px solid #ffd0d0;border-radius:12px;padding:12px;font-size:13px}.success{background:#ecfff4;color:#176b42;border:1px solid #bdeccf;border-radius:12px;padding:12px;font-size:13px}
-@media(min-width:700px){body{padding:20px 0}.app{border-radius:25px;overflow:hidden;box-shadow:0 10px 40px rgba(20,20,70,.12)}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; }
+        input, textarea, button { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; }
+        button { background: #0284c7; color: white; border: none; border-radius: 6px; font-size: 16px; }
+    </style>
 </head>
 <body>
-<div class="app">
-<header>
-<div class="brand">Lost&Found</div>
-<div class="sub">ของหายได้คืน — ช่วยกันตามหาของที่หาย</div>
-<div class="tabs">
-<button class="tab active" data-view="list">🔎 รายการของพบ</button>
-<button class="tab" data-view="add">➕ แจ้งของที่พบ</button>
-</div>
-</header>
-<main>
-<section id="list" class="view active">
-<div class="search"><input id="search" placeholder="ค้นหาชื่อสิ่งของ / สถานที่ / ผู้พบ"><button class="primary" id="clearSearch">ล้าง</button></div>
-<div id="status"></div><div id="items"><div class="loading">กำลังโหลดข้อมูล...</div></div>
-<div class="notice">ข้อมูลรายการนี้เชื่อมต่อกับฐานข้อมูลออนไลน์ของ Lost&Found</div>
-</section>
-<section id="add" class="view">
-<div class="card">
-<h2 style="margin:0 0 5px">แจ้งสิ่งของที่พบ</h2><div style="color:#777b98;font-size:13px">กรอกข้อมูลเพื่อให้เจ้าของสามารถตรวจสอบและติดต่อรับคืนได้</div>
-<label>ชื่อสิ่งของ *</label><input id="itemName" placeholder="เช่น กระเป๋าสตางค์สีดำ">
-<label>วันที่พบ *</label><input id="foundDate" type="date">
-<label>บริเวณที่พบ *</label><input id="location" placeholder="เช่น โรงอาหาร อาคาร 2">
-<label>ชื่อผู้พบ *</label><input id="finderName" placeholder="เช่น พิมิกา">
-<label>ช่องทางติดต่อ (ถ้าต้องการ)</label><input id="contact" placeholder="เช่น ห้อง ม.5/1">
-<label>รายละเอียดเพิ่มเติม</label><textarea id="description" placeholder="สี ลักษณะ จุดสังเกต หรือรายละเอียดอื่น ๆ"></textarea>
-<button class="primary full" id="addItem">บันทึกข้อมูลของที่พบ</button><div id="addMessage" style="margin-top:12px"></div>
-</div>
-</section>
-</main></div>
-<script type="module">
-import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getFirestore,collection,addDoc,onSnapshot,query,orderBy,serverTimestamp,doc,updateDoc}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    <h2>ฟอร์มแจ้งของหาย / พบของ</h2>
+    <form id="itemForm">
+        <input type="text" id="title" placeholder="ชื่อสิ่งของ" required>
+        <textarea id="detail" placeholder="รายละเอียด/สถานที่/ช่องทางติดต่อ" rows="4"></textarea>
+        <button type="submit">บันทึกข้อมูล</button>
+    </form>
 
-const firebaseConfig={
-apiKey:"AIzaSyBaen_e_u-BHej1zr2AdPjt5IAAZDTFVpmY",
-authDomain:"lost-and-found-e1aae.firebaseapp.com",
-projectId:"lost-and-found-e1aae",
-storageBucket:"lost-and-found-e1aae.firebasestorage.app",
-messagingSenderId:"98180766641",
-appId:"1:98180766641:web:dd10e3413c681f819d3b90",
-measurementId:"G-0TBWGS8KH8"
-};
-const app=initializeApp(firebaseConfig),db=getFirestore(app),itemsRef=collection(db,"lostItems");
-const itemsEl=document.getElementById("items"),statusEl=document.getElementById("status"),searchEl=document.getElementById("search");
-let allItems=[];
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.view).classList.add("active")});
-function esc(v=""){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-function render(){
-let t=searchEl.value.trim().toLowerCase(),a=allItems.filter(x=>[x.itemName,x.location,x.finderName,x.description,x.contact].filter(Boolean).join(" ").toLowerCase().includes(t));
-if(!a.length){itemsEl.innerHTML='<div class="empty">📦<br><br>ยังไม่มีรายการที่ตรงกับการค้นหา</div>';return}
-itemsEl.innerHTML=a.map(x=>'<div class="card"><span class="badge '+(x.returned?"returned":"")+'">'+(x.returned?"✓ ได้รับของคืนแล้ว":"● รอตามหาเจ้าของ")+'</span><h3 class="item-title">'+esc(x.itemName)+'</h3><div class="meta">📅 วันที่พบ: '+esc(x.foundDate||"-")+'<br>📍 บริเวณที่พบ: '+esc(x.location||"-")+'<br>👤 ผู้พบ: '+esc(x.finderName||"-")+(x.contact?"<br>💬 ติดต่อ: "+esc(x.contact):"")+'</div>'+(x.description?'<div class="desc">'+esc(x.description)+'</div>':"")+(x.returned?"":'<div class="row"><button class="secondary" data-return="'+x.id+'">✓ ทำเครื่องหมายว่าได้รับของคืนแล้ว</button></div>')+'</div>').join("");
-document.querySelectorAll("[data-return]").forEach(b=>b.onclick=async()=>{if(!confirm("ยืนยันว่าได้รับของคืนแล้วใช่ไหม?"))return;try{await updateDoc(doc(db,"lostItems",b.dataset.return),{returned:true})}catch(e){statusEl.innerHTML='<div class="error">อัปเดตไม่ได้ กรุณาตรวจสอบ Firestore Rules</div>'}});
-}
-onSnapshot(query(itemsRef,orderBy("createdAt","desc")),s=>{allItems=s.docs.map(d=>({id:d.id,...d.data()}));render();statusEl.innerHTML=""},e=>{console.error(e);itemsEl.innerHTML='<div class="error">เชื่อมต่อฐานข้อมูลไม่ได้ กรุณาตรวจสอบ Firestore Rules</div>'});
-searchEl.oninput=render;document.getElementById("clearSearch").onclick=()=>{searchEl.value="";render()};document.getElementById("foundDate").valueAsDate=new Date();
-document.getElementById("addItem").onclick=async()=>{
-const msg=document.getElementById("addMessage"),itemName=document.getElementById("itemName").value.trim(),foundDate=document.getElementById("foundDate").value,location=document.getElementById("location").value.trim(),finderName=document.getElementById("finderName").value.trim(),contact=document.getElementById("contact").value.trim(),description=document.getElementById("description").value.trim();
-if(!itemName||!foundDate||!location||!finderName){msg.innerHTML='<div class="error">กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบ</div>';return}
-const btn=document.getElementById("addItem");btn.disabled=true;btn.textContent="กำลังบันทึก...";
-try{await addDoc(itemsRef,{itemName,foundDate,location,finderName,contact,description,returned:false,createdAt:serverTimestamp()});msg.innerHTML='<div class="success">บันทึกสำเร็จ! ทุกคนที่เปิดแอปจะเห็นรายการนี้</div>';["itemName","location","finderName","contact","description"].forEach(id=>document.getElementById(id).value="");document.getElementById("foundDate").valueAsDate=new Date();setTimeout(()=>document.querySelector('[data-view="list"]').click(),900)}
-catch(e){console.error(e);msg.innerHTML='<div class="error">บันทึกไม่สำเร็จ กรุณาตรวจสอบ Firestore Rules</div>'}
-finally{btn.disabled=false;btn.textContent="บันทึกข้อมูลของที่พบ"}
-};
-</script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBaen_e_u-BHejjr2AdPjt5IAAZDTFVpmY",
+        authDomain: "lost-and-found-e1aae.firebaseapp.com",
+        projectId: "lost-and-found-e1aae",
+        storageBucket: "lost-and-found-e1aae.firebasestorage.app",
+        messagingSenderId: "98180766641",
+        appId: "1:98180766641:web:f0648f3cbe34914a9d3b90",
+        measurementId: "G-28YZP59306"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      document.getElementById("itemForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          await addDoc(collection(db, "items"), {
+            title: document.getElementById("title").value,
+            detail: document.getElementById("detail").value,
+            createdAt: new Date()
+          });
+          alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+          document.getElementById("itemForm").reset();
+        } catch (error) {
+          alert("เกิดข้อผิดพลาด: " + error.message);
+        }
+      });
+    </script>
 </body>
 </html>
