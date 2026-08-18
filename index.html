@@ -1,193 +1,94 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#5b5bd6">
-<meta name="description" content="Lost&Found — แอปช่วยติดตามและส่งคืนสิ่งของสูญหาย">
-<link rel="manifest" href="manifest.json">
-<title>Lost&Found — ของหายได้คืน</title>
-<style>
-:root{--primary:#5b5bd6;--bg:#f5f6fb;--text:#20223a;--muted:#74788f;--green:#21a366;--yellow:#e6a700}
-*{box-sizing:border-box} body{margin:0;background:#e9eaf2;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
-.phone{width:min(430px,100vw);min-height:100vh;margin:auto;background:var(--bg);position:relative;overflow:hidden}
-header{background:linear-gradient(135deg,#5b5bd6,#7777ee);color:white;padding:26px 22px 22px;border-radius:0 0 28px 28px}
-.brand{font-size:27px;font-weight:800}.tag{opacity:.9;margin-top:3px;font-size:13px}
-.search{background:white;color:#999;border-radius:14px;padding:14px;margin-top:20px;box-shadow:0 5px 15px #30305b20}
-.content{padding:18px 18px 95px}.section-title{font-size:18px;font-weight:800;margin:5px 0 12px}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 22px}
-button{border:0;border-radius:13px;padding:13px 12px;font-weight:700;font-size:14px;cursor:pointer}
-.action-found{background:#e7f8ee;color:#16804d}.action-lost{background:#eeeefe;color:#4d4dc2}
-.card{background:white;border-radius:17px;padding:15px;margin-bottom:12px;box-shadow:0 3px 12px #30305b10;display:flex;gap:13px;align-items:center}
-.thumb{width:72px;height:72px;border-radius:13px;background:#eef0f7;display:flex;align-items:center;justify-content:center;font-size:34px;flex:none}
-.card h3{margin:0 0 5px;font-size:16px}.meta{font-size:12px;color:var(--muted);line-height:1.65}
-.badge{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:700;margin-top:5px}.open{background:#fff4cf;color:#9a7000}.returned{background:#e2f7eb;color:#187548}
-nav{position:fixed;bottom:0;width:min(430px,100vw);height:72px;background:white;border-top:1px solid #eee;display:flex;justify-content:space-around;align-items:center;z-index:10}
-nav button{background:none;color:#777;font-size:11px;padding:5px}.active{color:var(--primary)!important}
-.screen{display:none}.screen.active{display:block}
-.form{background:white;border-radius:18px;padding:18px;box-shadow:0 3px 12px #30305b10}.form label{font-size:12px;font-weight:700;display:block;margin:12px 0 6px}
-input,select,textarea{width:100%;border:1px solid #dddff0;border-radius:11px;padding:12px;font:inherit;background:#fafaff}textarea{min-height:80px;resize:vertical}
-.primary{background:var(--primary);color:white;width:100%;margin-top:17px}.back{background:none;color:var(--primary);padding:0;margin-bottom:13px}
-.detail-img{height:190px;border-radius:18px;background:#e9ebf4;display:flex;align-items:center;justify-content:center;font-size:75px;margin-bottom:15px}
-.info{background:white;border-radius:17px;padding:17px}.row{padding:9px 0;border-bottom:1px solid #eee;font-size:13px}.row:last-child{border:0}.row b{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}
-.toast{position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#24263b;color:#fff;padding:11px 16px;border-radius:12px;font-size:13px;display:none;z-index:30;width:max-content;max-width:90%}
-.empty{text-align:center;color:var(--muted);padding:35px 10px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; background-color: #f9fafb; }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        input, textarea, button { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
+        button { background: #0284c7; color: white; border: none; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .item-list { margin-top: 20px; }
+        .item-card { background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #0284c7; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .item-title { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
+        .item-detail { color: #4b5563; font-size: 14px; white-space: pre-wrap; }
+        .item-time { font-size: 11px; color: #9ca3af; margin-top: 6px; }
+    </style>
 </head>
 <body>
-<div class="phone">
 
-<div id="home" class="screen active">
-<header>
-  <div class="brand">Lost&Found 🔎</div><div class="tag">ของหาย ไม่ต้องห่วง เราช่วยตามหา</div>
-  <div class="search" onclick="show('search')">🔍 &nbsp;ค้นหาสิ่งของ เช่น กระเป๋า, โทรศัพท์...</div>
-</header>
-<div class="content">
-  <div class="actions">
-    <button class="action-lost" onclick="show('lost')">🔴 แจ้งของหาย</button>
-    <button class="action-found" onclick="show('add')">🟢 แจ้งของที่พบ</button>
-  </div>
-  <div class="actions" style="margin-top:0">
-<div class="card" style="margin:0;padding:12px;display:block;text-align:center"><div style="font-size:22px;font-weight:800" id="openCount">0</div><div class="meta">กำลังตามหา</div></div>
-<div class="card" style="margin:0;padding:12px;display:block;text-align:center"><div style="font-size:22px;font-weight:800" id="returnedCount">0</div><div class="meta">ส่งคืนแล้ว</div></div>
-</div>
-<div class="section-title">ของที่พบล่าสุด</div>
-  <div id="homeList"></div>
-</div>
-</div>
+    <div class="card">
+        <h2>แจ้งของหาย / พบของ</h2>
+        <form id="itemForm">
+            <input type="text" id="title" placeholder="ชื่อสิ่งของ" required>
+            <textarea id="detail" placeholder="รายละเอียด/สถานที่/ช่องทางติดต่อ" rows="3"></textarea>
+            <button type="submit">บันทึกข้อมูล</button>
+        </form>
+    </div>
 
-<div id="search" class="screen">
-<header><div class="brand">🔎 ค้นหาของ</div><div class="tag">ค้นหาจากชื่อหรือสถานที่</div></header>
-<div class="content">
-  <div class="form">
-    <input id="q" placeholder="เช่น กระเป๋า / โรงอาหาร" oninput="renderSearch()">
-    <label>ประเภท</label><select id="filter" onchange="renderSearch()"><option value="">ทั้งหมด</option><option>กระเป๋า</option><option>อุปกรณ์การเรียน</option><option>โทรศัพท์</option><option>บัตร/เอกสาร</option><option>เสื้อผ้า</option></select>
-  </div>
-  <div class="section-title" style="margin-top:20px">ผลการค้นหา</div>
-  <div id="searchList"></div>
-</div>
-</div>
+    <h3>รายการที่แจ้งไว้ทั้งหมด</h3>
+    <div id="itemsContainer" class="item-list">กำลังโหลดข้อมูล...</div>
 
-<div id="add" class="screen">
-<div class="content">
-<button class="back" onclick="show('home')">← กลับหน้าแรก</button>
-<div class="section-title">🟢 แจ้งของที่พบ</div>
-<div class="form">
-<label>ชื่อสิ่งของ</label><input id="name" placeholder="เช่น กระเป๋าสีดำ">
-<label>ประเภท</label><select id="type"><option>กระเป๋า</option><option>อุปกรณ์การเรียน</option><option>โทรศัพท์</option><option>บัตร/เอกสาร</option><option>เสื้อผ้า</option></select>
-<label>รูปสิ่งของ (เลือกได้)</label><input id="photo" type="file" accept="image/*" onchange="previewPhoto(event)"><div id="photoPreview" style="margin-top:8px"></div>
-<label>วันที่พบ</label><input id="date" type="date">
-<label>เวลาที่พบ</label><input id="time" type="time">
-<label>บริเวณที่พบ</label><input id="place" placeholder="เช่น โรงอาหาร อาคาร 2">
-<label>รายละเอียด</label><textarea id="desc" placeholder="ลักษณะเด่นของสิ่งของ..."></textarea>
-<label>ชื่อผู้พบ</label><input id="finder" placeholder="เช่น New">
-<label>ช่องทางติดต่อ</label><input id="contact" placeholder="เช่น LINE: new123">
-<button class="primary" onclick="addItem()">📤 เพิ่มข้อมูลของที่พบ</button>
-</div></div>
-</div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-<div id="lost" class="screen">
-<div class="content">
-<button class="back" onclick="show('home')">← กลับหน้าแรก</button>
-<div class="section-title">🔴 แจ้งของหาย</div>
-<div class="form">
-<label>ชื่อสิ่งของ</label><input id="lostName" placeholder="เช่น กระเป๋าสีดำ">
-<label>รูปสิ่งของ (เลือกได้)</label><input id="lostPhoto" type="file" accept="image/*">
-<label>วันที่หาย</label><input id="lostDate" type="date">
-<label>สถานที่ที่คาดว่าหาย</label><input id="lostPlace" placeholder="เช่น โรงอาหาร">
-<label>รายละเอียด</label><textarea id="lostDesc" placeholder="รายละเอียดหรือลักษณะเฉพาะ..."></textarea>
-<button class="primary" onclick="submitLost()">🔎 ประกาศของหาย</button>
-</div>
-</div></div>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBaen_e_u-BHejjr2AdPjt5IAAZDTFVpmY",
+        authDomain: "lost-and-found-e1aae.firebaseapp.com",
+        projectId: "lost-and-found-e1aae",
+        storageBucket: "lost-and-found-e1aae.firebasestorage.app",
+        messagingSenderId: "98180766641",
+        appId: "1:98180766641:web:f0648f3cbe34914a9d3b90",
+        measurementId: "G-28YZP59306"
+      };
 
-<div id="detail" class="screen">
-<div class="content">
-<button class="back" onclick="show('home')">← กลับ</button>
-<div id="detailBox"></div>
-</div></div>
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
 
-<div id="profile" class="screen">
-<header><div class="brand">👤 โปรไฟล์</div><div class="tag">จัดการรายการของของคุณ</div></header>
-<div class="content">
-<div class="card"><div class="thumb">👤</div><div><h3>ผู้ใช้งาน</h3><div class="meta">บัญชีทดลองสำหรับ Prototype</div></div></div>
-<div class="card"><div class="thumb">📌</div><div><h3 id="count">0 รายการ</h3><div class="meta">รายการของที่พบในระบบ</div></div></div>
-<div class="section-title">จุดเด่นของระบบ</div>
-<div class="info"><div class="row">🔍 ค้นหาของหายได้ง่าย</div><div class="row">📍 ระบุบริเวณและวันที่พบ</div><div class="row">💡 แนะนำรายการที่อาจตรงกัน</div><div class="row">✅ เปลี่ยนสถานะเมื่อส่งคืนแล้ว</div></div>
-</div></div>
+      // 1. บันทึกข้อมูล
+      const form = document.getElementById("itemForm");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          await addDoc(collection(db, "items"), {
+            title: document.getElementById("title").value,
+            detail: document.getElementById("detail").value,
+            createdAt: new Date()
+          });
+          alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+          form.reset();
+        } catch (error) {
+          alert("เกิดข้อผิดพลาด: " + error.message);
+        }
+      });
 
-<nav>
-<button class="active" onclick="show('home',this)">🏠<br>หน้าแรก</button>
-<button onclick="show('search',this)">🔎<br>ค้นหา</button>
-<button onclick="show('add',this)">➕<br>เพิ่มข้อมูล</button>
-<button onclick="show('profile',this)">👤<br>โปรไฟล์</button>
-</nav>
-<div id="toast" class="toast"></div>
-</div>
+      // 2. ดึงข้อมูลมาแสดงผลแบบ Realtime
+      const q = query(collection(db, "items"), orderBy("createdAt", "desc"));
+      onSnapshot(q, (snapshot) => {
+        const container = document.getElementById("itemsContainer");
+        container.innerHTML = "";
 
-<script>
-const seedItems=[
- {id:1,name:"กระเป๋าดินสอสีดำ",type:"กระเป๋า",date:"2026-08-18",time:"12:30",place:"โรงอาหาร อาคาร 2",desc:"กระเป๋าสีดำ มีพวงกุญแจรูปหมี",finder:"นักเรียน A",contact:"LINE: studentA",status:"กำลังตามหาเจ้าของ",icon:"🎒"},
- {id:2,name:"บัตรนักเรียน",type:"บัตร/เอกสาร",date:"2026-08-18",time:"10:15",place:"อาคารวิทยาศาสตร์ ชั้น 2",desc:"บัตรนักเรียน 1 ใบ",finder:"นักเรียน B",contact:"LINE: studentB",status:"ส่งคืนแล้ว",icon:"🪪"},
- {id:3,name:"ขวดน้ำสีฟ้า",type:"อื่น ๆ",date:"2026-08-17",time:"15:40",place:"สนามกีฬา",desc:"ขวดน้ำสีฟ้า มีสติ๊กเกอร์ดาว",finder:"นักเรียน C",contact:"LINE: studentC",status:"กำลังตามหาเจ้าของ",icon:"🧴"}
-];
-let items=JSON.parse(localStorage.getItem("lostfound_items")||"null")||seedItems;
-function save(){localStorage.setItem("lostfound_items",JSON.stringify(items));}
+        if (snapshot.empty) {
+          container.innerHTML = "<p>ยังไม่มีรายการที่แจ้งไว้</p>";
+          return;
+        }
 
-
-function show(id,btn){
- document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
- document.getElementById(id).classList.add('active');
- if(btn){document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
- if(id==='home') renderHome();
- if(id==='search') renderSearch();
- if(id==='profile') document.getElementById('count').textContent=items.length+" รายการ";
-}
-function card(x){
- let st=x.status==='ส่งคืนแล้ว'?'returned':'open';
- return `<div class="card" onclick="detail(${x.id})"><div class="thumb">${x.image?`<img src="${x.image}" style="width:100%;height:100%;object-fit:cover;border-radius:13px">`:(x.icon||'📦')}</div><div><h3>${x.name}</h3><div class="meta">📅 ${x.date} · 📍 ${x.place}</div><span class="badge ${st}">${x.status}</span></div></div>`
-}
-function renderHome(){
- document.getElementById('homeList').innerHTML=items.map(card).join('');
- document.getElementById('openCount').textContent=items.filter(x=>x.status!=="ส่งคืนแล้ว").length;
- document.getElementById('returnedCount').textContent=items.filter(x=>x.status==="ส่งคืนแล้ว").length;
-}
-function renderSearch(){
- let q=(document.getElementById('q')?.value||'').toLowerCase(), f=document.getElementById('filter')?.value||'';
- let a=items.filter(x=>(!q||`${x.name} ${x.place} ${x.desc}`.toLowerCase().includes(q))&&(!f||x.type===f));
- document.getElementById('searchList').innerHTML=a.length?a.map(card).join('<div style="height:1px"></div>'):'<div class="empty">ไม่พบรายการที่ตรงกัน</div>';
-}
-function detail(id){
- let x=items.find(a=>a.id===id);
- document.getElementById('detailBox').innerHTML=`<div class="detail-img">${x.image?`<img src="${x.image}" style="width:100%;height:100%;object-fit:contain;border-radius:18px">`:(x.icon||'📦')}</div><div class="info"><h2 style="margin:0 0 8px">${x.name}</h2><span class="badge ${x.status==='ส่งคืนแล้ว'?'returned':'open'}">${x.status}</span><div class="row"><b>ประเภท</b>${x.type}</div><div class="row"><b>วันที่พบ</b>${x.date}</div><div class="row"><b>เวลาที่พบ</b>${x.time||'-'}</div><div class="row"><b>บริเวณที่พบ</b>📍 ${x.place}</div><div class="row"><b>รายละเอียด</b>${x.desc}</div><div class="row"><b>ชื่อผู้พบ</b>${x.finder}</div><div class="row"><b>ช่องทางติดต่อ</b>${x.contact}</div><button class="primary" onclick="contactFinder()">📩 ติดต่อผู้พบ</button>${x.status!=='ส่งคืนแล้ว'?`<button class="primary" style="background:#21a366" onclick="returnItem(${x.id})">✅ แจ้งว่าได้รับของคืนแล้ว</button>`:''}</div>`;
- show('detail');
-}
-function contactFinder(){toast("Prototype: เปิดช่องทางติดต่อผู้พบ")}
-function returnItem(id){items.find(x=>x.id===id).status="ส่งคืนแล้ว";save();toast("อัปเดตสถานะเป็น “ส่งคืนแล้ว”");setTimeout(()=>detail(id),500)}
-function addItem(){
- let name=document.getElementById('name').value.trim(),place=document.getElementById('place').value.trim();
- if(!name||!place){toast("กรุณากรอกชื่อสิ่งของและบริเวณที่พบ");return}
- const photo=document.getElementById('photo');
- const finish=(image)=>{items.unshift({id:Date.now(),name,type:document.getElementById('type').value,date:document.getElementById('date').value||"2026-08-18",time:document.getElementById('time').value||"-",place,desc:document.getElementById('desc').value||"ไม่มีรายละเอียดเพิ่มเติม",finder:document.getElementById('finder').value||"ผู้พบไม่ระบุชื่อ",contact:document.getElementById('contact').value||"-",status:"กำลังตามหาเจ้าของ",icon:iconFor(document.getElementById('type').value),image});save();toast("เพิ่มข้อมูลของที่พบเรียบร้อยแล้ว");setTimeout(()=>show('home'),700)};
- if(photo.files[0]){const r=new FileReader();r.onload=()=>finish(r.result);r.readAsDataURL(photo.files[0]);}else finish("");
-}
-function previewPhoto(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>document.getElementById('photoPreview').innerHTML=`<img src="${r.result}" style="width:90px;height:90px;object-fit:cover;border-radius:12px">`;r.readAsDataURL(f)}
-function iconFor(t){return t==="กระเป๋า"?"🎒":t==="โทรศัพท์"?"📱":t==="บัตร/เอกสาร"?"🪪":t==="เสื้อผ้า"?"👕":"📚"}
-function submitLost(){
- let n=document.getElementById('lostName').value.trim(); if(!n){toast("กรุณากรอกชื่อสิ่งของ");return}
- let place=(document.getElementById('lostPlace').value||"").toLowerCase();
- let matches=items.filter(x=>x.name.toLowerCase().includes(n.toLowerCase()) || (place && x.place.toLowerCase().includes(place)));
- if(matches.length){
-   toast("พบรายการที่อาจตรงกัน "+matches.length+" รายการ");
-   setTimeout(()=>{document.getElementById('q').value=n; show('search'); renderSearch();},900);
- } else {
-   toast("บันทึกประกาศแล้ว • รอผู้พบเพิ่มข้อมูล");
-   setTimeout(()=>show('home'),900);
- }
-}
-function toast(t){let x=document.getElementById('toast');x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2200)}
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
-function resetDemo(){localStorage.removeItem("lostfound_items");items=JSON.parse(JSON.stringify(seedItems));save();renderHome();toast("คืนข้อมูลตัวอย่างแล้ว")}
-renderHome();
-</script>
+        snapshot.forEach((doc) => {
+          const item = doc.data();
+          const timeStr = item.createdAt ? new Date(item.createdAt.toDate()).toLocaleString('th-TH') : '';
+          
+          const itemHTML = `
+            <div class="item-card">
+                <div class="item-title">${item.title}</div>
+                <div class="item-detail">${item.detail || '-'}</div>
+                <div class="item-time">${timeStr}</div>
+            </div>
+          `;
+          container.innerHTML += itemHTML;
+        });
+      });
+    </script>
 </body>
 </html>
