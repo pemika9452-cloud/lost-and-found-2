@@ -10,8 +10,7 @@
         h2, h3 { margin-top: 0; }
         input, textarea, button { width: 100%; margin-bottom: 12px; padding: 12px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
         input[type="file"] { border: none; padding: 4px 0; }
-        button { background: #0284c7; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #0369a1; }
+        button { background: #0284c7; color: white; border: none; font-weight: bold; cursor: pointer; }
         button:disabled { background: #9ca3af; cursor: not-allowed; }
         
         .item-list { margin-top: 15px; }
@@ -24,12 +23,15 @@
 <body>
 
     <div class="card">
-        <h2>แจ้งของหาย / พบของ</h2>
+        <h2>แจ้งของหาย / พบของ <span style="font-size: 12px; color: green;">(เวอร์ชันอัปเดตใส่รูปได้)</span></h2>
         <form id="itemForm">
             <input type="text" id="title" placeholder="ชื่อสิ่งของ" required>
             <textarea id="detail" placeholder="รายละเอียด/สถานที่/ช่องทางติดต่อ" rows="3"></textarea>
-            <label style="font-size: 13px; color: #6b7280; display: block; margin-bottom: 4px;">แนบรูปภาพ (ถ้ามี):</label>
+            
+            <!-- ปุ่มเลือกรูปภาพ -->
+            <label style="font-size: 13px; color: #0284c7; font-weight: bold; display: block; margin-bottom: 4px;">แนบรูปภาพสิ่งของ:</label>
             <input type="file" id="imageInput" accept="image/*">
+            
             <button type="submit" id="submitBtn">บันทึกข้อมูล</button>
         </form>
     </div>
@@ -54,7 +56,6 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      // แปลงรูปภาพเป็น Base64
       const convertBase64 = (file) => {
         return new Promise((resolve, reject) => {
           const fileReader = new FileReader();
@@ -64,7 +65,6 @@
         });
       };
 
-      // บันทึกข้อมูล
       const form = document.getElementById("itemForm");
       const submitBtn = document.getElementById("submitBtn");
 
@@ -102,7 +102,6 @@
         }
       });
 
-      // ดึงข้อมูล Realtime
       onSnapshot(collection(db, "items"), (snapshot) => {
         const container = document.getElementById("itemsContainer");
         container.innerHTML = "";
