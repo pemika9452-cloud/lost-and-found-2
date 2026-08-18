@@ -5,28 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lost & Found</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; }
-        input, textarea, button { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; }
-        button { background: #0284c7; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+        body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; background-color: #f9fafb; color: #111827; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2, h3 { margin-top: 0; }
+        input, textarea, button { width: 100%; margin-bottom: 12px; padding: 12px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+        input[type="file"] { border: none; padding: 4px 0; }
+        button { background: #0284c7; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #0369a1; }
+        button:disabled { background: #9ca3af; cursor: not-allowed; }
         
-        .item-list { margin-top: 20px; }
-        .item-card { padding: 12px 0; border-bottom: 1px solid #eee; }
-        .item-title { font-weight: bold; font-size: 16px; }
-        .item-detail { color: #4b5563; font-size: 14px; margin-top: 4px; white-space: pre-wrap; }
-        .item-img { width: 100%; max-height: 250px; object-fit: cover; border-radius: 6px; margin-top: 8px; }
+        .item-list { margin-top: 15px; }
+        .item-card { background: white; padding: 16px; border-radius: 12px; border-left: 5px solid #0284c7; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .item-title { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
+        .item-detail { color: #4b5563; font-size: 14px; white-space: pre-wrap; margin-bottom: 8px; }
+        .item-img { width: 100%; max-height: 250px; object-fit: cover; border-radius: 8px; margin-top: 8px; }
     </style>
 </head>
 <body>
-    <h2>ฟอร์มแจ้งของหาย / พบของ</h2>
-    <form id="itemForm">
-        <input type="text" id="title" placeholder="ชื่อสิ่งของ" required>
-        <textarea id="detail" placeholder="รายละเอียด/สถานที่/ช่องทางติดต่อ" rows="4"></textarea>
-        <label style="font-size: 14px; color: #555;">แนบรูปภาพ (ถ้ามี):</label>
-        <input type="file" id="imageInput" accept="image/*">
-        <button type="submit" id="submitBtn">บันทึกข้อมูล</button>
-    </form>
 
-    <div id="itemsContainer" class="item-list"></div>
+    <div class="card">
+        <h2>แจ้งของหาย / พบของ</h2>
+        <form id="itemForm">
+            <input type="text" id="title" placeholder="ชื่อสิ่งของ" required>
+            <textarea id="detail" placeholder="รายละเอียด/สถานที่/ช่องทางติดต่อ" rows="3"></textarea>
+            <label style="font-size: 13px; color: #6b7280; display: block; margin-bottom: 4px;">แนบรูปภาพ (ถ้ามี):</label>
+            <input type="file" id="imageInput" accept="image/*">
+            <button type="submit" id="submitBtn">บันทึกข้อมูล</button>
+        </form>
+    </div>
+
+    <h3>รายการที่แจ้งไว้ทั้งหมด</h3>
+    <div id="itemsContainer" class="item-list">กำลังโหลดข้อมูล...</div>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -45,7 +54,7 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      // ฟังก์ชันแปลงไฟล์รูปเป็น Base64 String
+      // แปลงรูปภาพเป็น Base64
       const convertBase64 = (file) => {
         return new Promise((resolve, reject) => {
           const fileReader = new FileReader();
@@ -55,9 +64,12 @@
         });
       };
 
-      document.getElementById("itemForm").addEventListener("submit", async (e) => {
+      // บันทึกข้อมูล
+      const form = document.getElementById("itemForm");
+      const submitBtn = document.getElementById("submitBtn");
+
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const submitBtn = document.getElementById("submitBtn");
         
         const title = document.getElementById("title").value;
         const detail = document.getElementById("detail").value;
@@ -81,7 +93,7 @@
           });
 
           alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
-          document.getElementById("itemForm").reset();
+          form.reset();
         } catch (error) {
           alert("เกิดข้อผิดพลาด: " + error.message);
         } finally {
@@ -90,11 +102,16 @@
         }
       });
 
-      // ดึงข้อมูลแสดงผล Realtime
+      // ดึงข้อมูล Realtime
       onSnapshot(collection(db, "items"), (snapshot) => {
         const container = document.getElementById("itemsContainer");
         container.innerHTML = "";
-        
+
+        if (snapshot.empty) {
+          container.innerHTML = "<p style='color: #6b7280;'>ยังไม่มีรายการที่แจ้งไว้</p>";
+          return;
+        }
+
         snapshot.forEach((doc) => {
           const item = doc.data();
           const imgTag = item.image ? `<img src="${item.image}" class="item-img" alt="รูปสิ่งของ">` : '';
