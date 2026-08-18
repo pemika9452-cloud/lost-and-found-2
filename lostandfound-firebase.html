@@ -35,18 +35,20 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      document.getElementById("itemForm").addEventListener("submit", async (e) => {
+      const form = document.getElementById("itemForm");
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
         try {
-          await addDoc(collection(db, "items"), {
+          const docRef = await addDoc(collection(db, "items"), {
             title: document.getElementById("title").value,
             detail: document.getElementById("detail").value,
             createdAt: new Date()
           });
-          alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
-          document.getElementById("itemForm").reset();
+          alert("บันทึกสำเร็จ! ID: " + docRef.id);
+          form.reset();
         } catch (error) {
           alert("เกิดข้อผิดพลาด: " + error.message);
+          console.error(error);
         }
       });
     </script>
