@@ -1,21 +1,89 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; }
+        input, textarea, button { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; }
+        button { background: #0284c7; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+        
+        /* สไตล์ส่วนแสดงผลรายการเรียลไทม์ */
+        .item-list { margin-top: 20px; }
+        .item-card { background: #f3f4f6; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #0284c7; }
+        .item-title { font-weight: bold; font-size: 16px; }
+        .item-detail { color: #4b5563; font-size: 14px; margin-top: 4px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h2>ฟอร์มแจ้งของหาย / พบของ</h2>
+    <form id="itemForm">
+        <input type="text" id="title" placeholder="ชื่อสิ่งของ" required>
+        <textarea id="detail" placeholder="รายละเอียด/สถานที่/ช่องทางติดต่อ" rows="4"></textarea>
+        <button type="submit">บันทึกข้อมูล</button>
+    </form>
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBaen_e_u-BHejjr2AdPjt5IAAZDTFVpmY",
-  authDomain: "lost-and-found-e1aae.firebaseapp.com",
-  projectId: "lost-and-found-e1aae",
-  storageBucket: "lost-and-found-e1aae.firebasestorage.app",
-  messagingSenderId: "98180766641",
-  appId: "1:98180766641:web:dd10e3413c681f819d3b90",
-  measurementId: "G-0TBWGS8KH8"
-};
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+    <!-- โซนแสดงผลรายการแบบ Realtime -->
+    <h3>รายการทั้งหมด</h3>
+    <div id="itemsContainer" class="item-list">กำลังโหลดข้อมูล...</div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBaen_e_u-BHejjr2AdPjt5IAAZDTFVpmY",
+        authDomain: "lost-and-found-e1aae.firebaseapp.com",
+        projectId: "lost-and-found-e1aae",
+        storageBucket: "lost-and-found-e1aae.firebasestorage.app",
+        messagingSenderId: "98180766641",
+        appId: "1:98180766641:web:f0648f3cbe34914a9d3b90",
+        measurementId: "G-28YZP59306"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // 1. บันทึกข้อมูลเข้า Firebase
+      document.getElementById("itemForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          await addDoc(collection(db, "items"), {
+            title: document.getElementById("title").value,
+            detail: document.getElementById("detail").value,
+            createdAt: new Date().toISOString()
+          });
+          alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+          document.getElementById("itemForm").reset();
+        } catch (error) {
+          alert("เกิดข้อผิดพลาด: " + error.message);
+        }
+      });
+
+      // 2. ดึงข้อมูลมาแสดงผลแบบ Realtime ทันทีที่มีการเปลี่ยนแปลง
+      onSnapshot(collection(db, "items"), (snapshot) => {
+        const container = document.getElementById("itemsContainer");
+        container.innerHTML = "";
+
+        if (snapshot.empty) {
+          container.innerHTML = "<p style='color: #888;'>ยังไม่มีรายการที่แจ้งไว้</p>";
+          return;
+        }
+
+        snapshot.forEach((doc) => {
+          const item = doc.data();
+          const itemHTML = `
+            <div class="item-card">
+                <div class="item-title">${item.title}</div>
+                <div class="item-detail">${item.detail || '-'}</div>
+            </div>
+          `;
+          container.innerHTML += itemHTML;
+        });
+      });
+    </script>
+</body>
+</html>
