@@ -5,22 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lost & Found</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; }
-        input, textarea, button { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; }
-        button { background: #0284c7; color: white; border: none; border-radius: 6px; font-size: 16px; }
+        body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; background-color: #f9fafb; }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        input, textarea, button { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
+        button { background: #0284c7; color: white; border: none; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .item-list { margin-top: 20px; }
+        .item-card { background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #0284c7; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .item-title { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
+        .item-detail { color: #4b5563; font-size: 14px; white-space: pre-wrap; }
     </style>
 </head>
 <body>
-    <h2>ฟอร์มแจ้งของหาย / พบของ</h2>
-    <form id="itemForm">
-        <input type="text" id="title" placeholder="ชื่อสิ่งของ" required>
-        <textarea id="detail" placeholder="รายละเอียด/สถานที่/ช่องทางติดต่อ" rows="4"></textarea>
-        <button type="submit">บันทึกข้อมูล</button>
-    </form>
+
+    <div class="card">
+        <h2>แจ้งของหาย / พบของ</h2>
+        <form id="itemForm">
+            <input type="text" id="title" placeholder="ชื่อสิ่งของ" required>
+            <textarea id="detail" placeholder="รายละเอียด/สถานที่/ช่องทางติดต่อ" rows="3"></textarea>
+            <button type="submit">บันทึกข้อมูล</button>
+        </form>
+    </div>
+
+    <h3>รายการที่แจ้งไว้ทั้งหมด</h3>
+    <div id="itemsContainer" class="item-list">กำลังโหลดข้อมูล...</div>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBaen_e_u-BHejjr2AdPjt5IAAZDTFVpmY",
@@ -35,21 +46,46 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
+      // 1. บันทึกข้อมูล
       const form = document.getElementById("itemForm");
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         try {
-          const docRef = await addDoc(collection(db, "items"), {
+          await addDoc(collection(db, "items"), {
             title: document.getElementById("title").value,
             detail: document.getElementById("detail").value,
-            createdAt: new Date()
+            createdAt: new Date().toISOString()
           });
-          alert("บันทึกสำเร็จ! ID: " + docRef.id);
+          alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
           form.reset();
         } catch (error) {
           alert("เกิดข้อผิดพลาด: " + error.message);
-          console.error(error);
         }
+      });
+
+      // 2. ดึงข้อมูลแสดงผลแบบดึงตรง (ไม่สั่งเรียงลำดับ)
+      onSnapshot(collection(db, "items"), (snapshot) => {
+        const container = document.getElementById("itemsContainer");
+        container.innerHTML = "";
+
+        if (snapshot.empty) {
+          container.innerHTML = "<p>ยังไม่มีรายการที่แจ้งไว้</p>";
+          return;
+        }
+
+        snapshot.forEach((doc) => {
+          const item = doc.data();
+          const itemHTML = `
+            <div class="item-card">
+                <div class="item-title">${item.title}</div>
+                <div class="item-detail">${item.detail || '-'}</div>
+            </div>
+          `;
+          container.innerHTML += itemHTML;
+        });
+      }, (error) => {
+        console.error("Error: ", error);
+        document.getElementById("itemsContainer").innerText = "เกิดข้อผิดพลาดในการโหลดข้อมูล: " + error.message;
       });
     </script>
 </body>
