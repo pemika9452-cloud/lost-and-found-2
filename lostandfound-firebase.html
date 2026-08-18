@@ -1,21 +1,115 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; }
+        input, textarea, button { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; }
+        button { background: #0284c7; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+        button:disabled { background: #9ca3af; cursor: not-allowed; }
+        
+        .item-list { margin-top: 20px; }
+        .item-card { padding: 12px 0; border-bottom: 1px solid #eee; }
+        .item-title { font-weight: bold; font-size: 16px; }
+        .item-detail { color: #4b5563; font-size: 14px; margin-top: 4px; white-space: pre-wrap; }
+        .item-img { width: 100%; max-height: 250px; object-fit: cover; border-radius: 6px; margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <h2>ฟอร์มแจ้งของหาย / พบของ</h2>
+    <form id="itemForm">
+        <input type="text" id="title" placeholder="ชื่อสิ่งของ" required>
+        <textarea id="detail" placeholder="รายละเอียด/สถานที่/ช่องทางติดต่อ" rows="4"></textarea>
+        <label style="font-size: 14px; color: #555;">แนบรูปภาพ (ถ้ามี):</label>
+        <input type="file" id="imageInput" accept="image/*">
+        <button type="submit" id="submitBtn">บันทึกข้อมูล</button>
+    </form>
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBaen_e_u-BHejjr2AdPjt5IAAZDTFVpmY",
-  authDomain: "lost-and-found-e1aae.firebaseapp.com",
-  projectId: "lost-and-found-e1aae",
-  storageBucket: "lost-and-found-e1aae.firebasestorage.app",
-  messagingSenderId: "98180766641",
-  appId: "1:98180766641:web:dd10e3413c681f819d3b90",
-  measurementId: "G-0TBWGS8KH8"
-};
+    <div id="itemsContainer" class="item-list"></div>
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBaen_e_u-BHejjr2AdPjt5IAAZDTFVpmY",
+        authDomain: "lost-and-found-e1aae.firebaseapp.com",
+        projectId: "lost-and-found-e1aae",
+        storageBucket: "lost-and-found-e1aae.firebasestorage.app",
+        messagingSenderId: "98180766641",
+        appId: "1:98180766641:web:f0648f3cbe34914a9d3b90",
+        measurementId: "G-28YZP59306"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const storage = getStorage(app);
+
+      const form = document.getElementById("itemForm");
+      const submitBtn = document.getElementById("submitBtn");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const title = document.getElementById("title").value;
+        const detail = document.getElementById("detail").value;
+        const fileInput = document.getElementById("imageInput");
+        const file = fileInput.files[0];
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "กำลังบันทึก...";
+
+        try {
+          let imageUrl = "";
+
+          // ถ้าเลือกรูปภาพ ให้ทำการอัปโหลดเข้า Storage ก่อน
+          if (file) {
+            const storageRef = ref(storage, 'items/' + Date.now() + '_' + file.name);
+            const snapshot = await uploadBytes(storageRef, file);
+            imageUrl = await getDownloadURL(snapshot.ref);
+          }
+
+          // บันทึกข้อมูลลง Firestore
+          await addDoc(collection(db, "items"), {
+            title: title,
+            detail: detail,
+            imageUrl: imageUrl,
+            createdAt: new Date().toISOString()
+          });
+
+          alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+          form.reset();
+        } catch (error) {
+          alert("เกิดข้อผิดพลาด: " + error.message);
+          console.error(error);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "บันทึกข้อมูล";
+        }
+      });
+
+      // ดึงข้อมูล Realtime
+      onSnapshot(collection(db, "items"), (snapshot) => {
+        const container = document.getElementById("itemsContainer");
+        container.innerHTML = "";
+        
+        snapshot.forEach((doc) => {
+          const item = doc.data();
+          const imgTag = item.imageUrl ? `<img src="${item.imageUrl}" class="item-img" alt="รูปสิ่งของ">` : '';
+          
+          const itemHTML = `
+            <div class="item-card">
+                <div class="item-title">${item.title}</div>
+                <div class="item-detail">${item.detail || '-'}</div>
+                ${imgTag}
+            </div>
+          `;
+          container.innerHTML += itemHTML;
+        });
+      });
+    </script>
+</body>
+</html>
